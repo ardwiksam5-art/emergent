@@ -1,0 +1,125 @@
+{
+  "typography": {
+    "headings": {
+      "font_family": "Manrope, sans-serif",
+      "weights": ["500", "800"],
+      "tracking": "tracking-tight",
+      "usage": "Use for all page titles, dashboard card headers, and investor-facing high-level metrics."
+    },
+    "body": {
+      "font_family": "'IBM Plex Sans', sans-serif",
+      "weights": ["400", "500", "600"],
+      "leading": "leading-relaxed",
+      "usage": "Use for all standard text, descriptions, and UI controls."
+    },
+    "mono": {
+      "font_family": "'JetBrains Mono', monospace",
+      "weights": ["400", "700"],
+      "tracking": "tracking-widest",
+      "usage": "CRITICAL: Use for all biological sequences (FASTA), molecular coordinates (PDB), file hashes, and specific data table metrics to ensure perfect digit alignment."
+    },
+    "general_rules": "Never use Inter, Roboto, or generic sans for headings. Apply tracking-tighter to main headings. Make overlines/labels uppercase, tiny (text-[10px] or text-xs), with wide spacing (tracking-[0.2em]). Install font packages locally to ensure 100% offline functionality."
+  },
+  "colors": {
+    "light_mode": {
+      "background": "#f8fafc",
+      "surface": "#ffffff",
+      "border": "#e2e8f0",
+      "text_primary": "#0f172a",
+      "text_secondary": "#475569"
+    },
+    "dark_mode": {
+      "background": "#020617",
+      "surface": "#0f172a",
+      "border": "#1e293b",
+      "text_primary": "#f8fafc",
+      "text_secondary": "#94a3b8"
+    },
+    "brand_palette": {
+      "primary": "#2563eb",
+      "secondary": "#10b981",
+      "accent": "#f59e0b"
+    },
+    "rules": "Follow ARCHETYPE 4: SWISS & HIGH-CONTRAST mixed with the requested rich colors. The UI should feel like a 'Technical Command Center'. To avoid typical standard color looks, ensure the background is always slightly tinted (Slate) rather than pure white/black. DO NOT use dark gradients or purple/pink. Ensure minimum 4.5:1 contrast for text."
+  },
+  "visual_enhancers": {
+    "surface_strategy": "GRID BORDERS (The Technical Look). Expose the skeleton. Dashboards should have a border-collapse style layout or sharp 1px borders (border-slate-200 in light mode, border-slate-800 in dark). No muddy drop-shadows. Use flat, solid containers.",
+    "hover_states": "Subtle background tint shifts (e.g., hover:bg-slate-50 or hover:bg-slate-800). Interactive elements should feel highly responsive but not bouncy.",
+    "branding": "For PeptiCascade, build a typographical logo with a Lucide 'Hexagon' icon and 'Manrope' Black text. Ensure it looks authoritative and investor-ready. PDF exports MUST include this branding prominently."
+  },
+  "component_name": "Scientific Simulation Dashboard UI",
+  "grids": {
+    "dashboard_mode": "High Density Grid Protocol. Base grid: grid-cols-1 md:grid-cols-3 lg:grid-cols-4. Gap strategy: Tight (gap-4 or gap-6).",
+    "bento_rules": "Summary widgets: col-span-1. Primary Data (Plotly charts): col-span-2 row-span-2. Feed/List (Job Queue): col-span-1 row-span-2. Every pixel must be utilized. Use h-full on children to stretch."
+  },
+  "layouts": {
+    "navigation": "Left sidebar (collapsible for deep data focus). Top bar for global actions (Upload, Search, Settings).",
+    "spacing_system": "Generous internal padding for breathing room within cards (p-6). But tight gaps between the cards themselves to maximize data density on the screen.",
+    "panels": "Simulation configuration panels (GROMACS, LAMMPS) are complex. They should slide in (Sheet/Drawer) or use focused tabs so users do not lose their context in the dashboard."
+  },
+  "motion": {
+    "rules": "Minimalist. Focus on micro-interactions. Use staggered entrance animations for the 2,880 simulation results list to make loading feel fast and powerful.",
+    "progress": "CRITICAL: Job queue requires smooth, non-jittery progress bars for long simulations to convey stability."
+  },
+  "accessibility": {
+    "contrast": "Minimum 4.5:1 for standard text. Test colors thoroughly, especially the Deep Blue against dark mode backgrounds.",
+    "data_viz": "Charts must have tooltips, high contrast lines, and clear legends. Plotly configurations must adapt to light/dark themes.",
+    "testing_ids": "All interactive elements MUST include data-testid attribute in kebab-case."
+  },
+  "media": {
+    "icons": "Use Lucide React (lucide-react). It matches the sharp, crisp technical requirements perfectly.",
+    "images": "Keep image usage minimal as this is a data-heavy tool. Limit to the abstract backgrounds provided in image_urls for login/empty states."
+  },
+  "3d_libraries": {
+    "primary": "plotly.js (via react-plotly.js) for all 2D interactive charts and basic 3D scatter plots.",
+    "molecular": "For advanced molecular structures, use a dedicated offline React wrapper like 'molstar' or use Plotly's 3D scatter if specialized offline libraries aren't feasible. The prompt requires 100% offline, so ALL libraries must be installable via npm/yarn without relying on external CDNs.",
+    "rules": "DO NOT make external API calls for fonts or libraries."
+  },
+  "image_urls": [
+    {
+      "url": "https://images.unsplash.com/photo-1771015138120-319470ad8f04?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "description": "Abstract molecular structure with hexagonal rings. Use as a subtle background pattern for the login screen or 'Empty State' visualization lab.",
+      "category": "backgrounds"
+    },
+    {
+      "url": "https://images.unsplash.com/photo-1773984203491-7262e4b9284f?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "description": "Abstract molecular structure with white and teal spheres. Use for hero banners in investor export reports.",
+      "category": "reports"
+    }
+  ],
+  "component_path": "/app/src/components/ui",
+  "instructions_to_main_agent": [
+    "1. Initialize the project with React, Tailwind, and Shadcn UI. Ensure completely offline operation (bundle fonts locally). Remember you are working with .js/.jsx files, NOT .tsx.",
+    "2. Setup Plotly for React (`react-plotly.js`). Customize the Plotly default layout template to match our Light/Dark themes (e.g., set `paper_bgcolor` to transparent, `plot_bgcolor` to transparent, `font.family` to IBM Plex Sans).",
+    "3. Build the PeptiCascade Logo: Use `<Hexagon size={28} className='text-blue-600' />` combined with text `<span className='font-manrope font-extrabold tracking-tight'>PeptiCascade</span>`. NO placeholder text.",
+    "4. Construct the Dashboard Bento Grid to immediately load the 2,880 simulations from JSON. Use virtualization (e.g., react-window) if rendering all results in a list to maintain high performance.",
+    "5. Use pure HTML/Tailwind for structural layout and customized Shadcn components for inputs, dropdowns, and dialogs. Ensure strict 1px borders (`border-slate-200`) and remove drop-shadows for the 'Technical Grid' look.",
+    "6. Build a comprehensive 'Export Center'. You must implement PDF export using `jspdf` and `html2canvas` (or equivalent offline methods) to generate the branded PDF locally without internet.",
+    "7. Simulation configuration panels for GROMACS, LAMMPS, PySCF, Avogadro, SciPy, RDKit should use Shadcn forms with dense layout (IBM Plex Sans, text-sm) to fit complex scientific parameters clearly.",
+    "8. Ensure all interactive elements have `data-testid` attributes."
+  ],
+  "UNIVERSAL GUIDELINES FOR MAIN AGENT": [
+    "You tend to converge toward generic, 'on distribution' outputs. In frontend design, this creates what users call the 'AI slop' aesthetic. Avoid this: make creative, distinctive frontends that surprise and delight.",
+    "Dark colors look good when used independently without gradients. DO NOT use dark colors as gradients.",
+    "Don't make generic centered layouts, simplistic gradients, and uniform styling.",
+    "Create depth through layered design elements with z-index hierarchy and crisp 1px borders instead of muddy shadows.",
+    "You MUST NOT apply universal transition. Eg: `transition: all`. Always add transitions for specific interactive elements.",
+    "You MUST NOT center align the app container. Do not add `.App { text-align: center; }`.",
+    "Always use modern button styles with interaction animations. NO EMOJIS.",
+    "NEVER use AI assistant Emoji characters like 🤖🧠💭💡🔮🎯📚🎭 for icons. Use Lucide icons.",
+    "Every interaction needs micro-animations - hover states, transitions.",
+    "Use generous spacing where appropriate inside containers, but respect the High Density Grid for data layouts.",
+    "Subtle grain textures, custom cursors, and crisp 1px borders separate good from extraordinary.",
+    "Prioritize using pre-existing components from src/components/ui when applicable.",
+    "Components MUST use named exports. Pages MUST use default exports.",
+    "Use `sonner` for toasts. It is located in `/app/src/components/ui/sonner.jsx` or similar JS file."
+  ],
+  "GENERAL UI UX DESIGN GUIDELINES": [
+    "Context Matters: This is a high-density, professional scientific tool aimed at investors. It must balance heavy data presentation with an elegant, expensive feel.",
+    "Grid Transparency: Use 1px borders on containers to create a technical 'blueprint' feel. Remove standard card shadows.",
+    "Color Intent: Deep Blue (#2563eb) is the authoritative primary color. Emerald Green (#10b981) represents success/sustainability. Amber (#f59e0b) represents running processes/energy.",
+    "Data Typography: Always use Monospace (JetBrains Mono) for scientific values, sequences, and exact metrics to ensure vertical alignment of digits.",
+    "Frictionless Forms: Complex configurations for tools like GROMACS/LAMMPS must be broken down into logical steps or categorized tabs. Do not overwhelm the user with 50 inputs at once.",
+    "Immediate Value: The 2,880 existing results must be accessible immediately upon load. The dashboard should not feel 'empty' on first launch. Show aggregated stats instantly."
+  ]
+}
