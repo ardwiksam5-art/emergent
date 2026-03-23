@@ -14,10 +14,17 @@ import subprocess
 import json
 import shutil
 from tool_manager import ToolManager
-from ollama_analyzer import OllamaAnalyzer
 from recommendation_engine import RecommendationEngine
 from structure_generator import StructureGenerator
 from tool_integration import GromacsIntegration, LAMMPSIntegration, PySCFIntegration, RDKitIntegration
+
+# Optional Ollama import - gracefully handle if not available
+try:
+    from ollama_analyzer import OllamaAnalyzer
+    OLLAMA_AVAILABLE = True
+except ImportError:
+    OLLAMA_AVAILABLE = False
+    OllamaAnalyzer = None
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -40,7 +47,7 @@ UPLOAD_DIR.mkdir(exist_ok=True)
 RESULTS_DIR.mkdir(exist_ok=True)
 
 # Initialize analyzers and engines
-ollama_analyzer = OllamaAnalyzer()
+ollama_analyzer = OllamaAnalyzer() if OLLAMA_AVAILABLE else None
 recommendation_engine = RecommendationEngine()
 structure_generator = StructureGenerator()
 
@@ -180,6 +187,14 @@ class AnalyzeResultsRequest(BaseModel):
 async def analyze_with_ai(request: AnalyzeResultsRequest):
     """Analyze simulation results with AI"""
     try:
+        if not OLLAMA_AVAILABLE or not ollama_analyzer:
+            # Fallback analysis without Ollama
+            return {
+                "analysis": f"Analysis for {request.tool} simulation:\n\nResults: {json.dumps(request.results, indent=2)}\n\nNote: AI analysis requires Ollama to be installed. Using basic analysis.",
+                "ollama_available": False,
+                "models_available": []
+            }
+        
         analysis = ollama_analyzer.analyze_simulation_results(
             request.tool,
             request.results,
@@ -192,7 +207,7 @@ async def analyze_with_ai(request: AnalyzeResultsRequest):
         }
     except Exception as e:
         return {
-            "analysis": ollama_analyzer._generate_fallback_analysis(request.tool, request.results),
+            "analysis": f"Analysis unavailable. Error: {str(e)}",
             "ollama_available": False,
             "models_available": []
         }
@@ -200,6 +215,13 @@ async def analyze_with_ai(request: AnalyzeResultsRequest):
 @api_router.get("/ollama/status")
 async def check_ollama_status():
     """Check if Ollama is available"""
+    if not OLLAMA_AVAILABLE or not ollama_analyzer:
+        return {
+            "available": False,
+            "models": [],
+            "message": "Ollama not installed. Install with: curl -fsSL https://ollama.com/install.sh | sh"
+        }
+    
     return {
         "available": ollama_analyzer.is_available(),
         "models": ollama_analyzer.get_available_models()
@@ -211,7 +233,10 @@ async def check_ollama_status():
 async def get_recent_simulations():
     """Get recent simulations"""
     try:
-        simulations = await db.simulations.find({}, {"_id": 0}).sort("date", -1).limit(10).to_list(10)
+        simulations = await db.simulations.find(
+            {}, 
+            {"_id": 0, "id": 1, "name": 1, "status": 1, "tool": 1, "timestamp": 1, "date": 1}
+        ).sort("date", -1).limit(10).to_list(10)
         return simulations
     except Exception as e:
         # Return mock data if DB fails
@@ -225,8 +250,11 @@ async def get_recent_simulations():
 async def get_simulation_results():
     """Get all simulation results - loads actual 2,880 simulations"""
     try:
-        # Try to get from database first
-        results = await db.simulations.find({}, {"_id": 0}).limit(2880).to_list(2880)
+        # Try to get from database first with projection
+        results = await db.simulations.find(
+            {}, 
+            {"_id": 0, "id": 1, "name": 1, "tool": 1, "status": 1, "date": 1, "duration": 1, "peptide": 1, "metal": 1}
+        ).limit(2880).to_list(2880)
         if results:
             return results
     except Exception as e:
@@ -272,7 +300,10 @@ async def run_simulation(sim: SimulationCreate):
 async def get_job_queue():
     """Get job queue status"""
     try:
-        jobs = await db.job_queue.find({}, {"_id": 0}).to_list(100)
+        jobs = await db.job_queue.find(
+            {}, 
+            {"_id": 0, "id": 1, "name": 1, "tool": 1, "status": 1, "progress": 1, "startTime": 1, "estimatedTime": 1}
+        ).to_list(100)
         return jobs
     except Exception as e:
         # Return mock data
