@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { Play, Save } from 'lucide-react';
+import { Play, Save, Sparkles } from 'lucide-react';
 import axios from 'axios';
+import SmartRecommendations from '../components/SmartRecommendations';
 
 const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -81,11 +82,15 @@ export const SimulationPage = () => {
   const [running, setRunning] = useState(false);
   const [inputMode, setInputMode] = useState('file'); // 'file', 'sequence', 'formula'
   const [textInput, setTextInput] = useState('');
+  const [peptide, setPeptide] = useState('');
+  const [metal, setMetal] = useState('');
+  const [aiAnalysis, setAiAnalysis] = useState(null);
 
   const handleToolSelect = (tool) => {
     setSelectedTool(tool);
     setFormData({});
     setTextInput('');
+    setAiAnalysis(null);
   };
 
   const handleInputChange = (paramName, value) => {
@@ -126,7 +131,22 @@ export const SimulationPage = () => {
         tool: selectedTool.id,
         parameters: formData,
       });
+      
       console.log('Simulation started:', response.data);
+      
+      // Request AI analysis if available
+      if (response.data.output) {
+        try {
+          const analysisResponse = await axios.post(`${API}/analyze/ai`, {
+            tool: selectedTool.name,
+            results: response.data.output,
+          });
+          setAiAnalysis(analysisResponse.data.analysis);
+        } catch (error) {
+          console.log('AI analysis not available');
+        }
+      }
+      
       alert('Simulation started successfully!');
     } catch (error) {
       console.error('Simulation error:', error);
