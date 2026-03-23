@@ -518,13 +518,14 @@ async def health_check():
         "version": "1.0.0",
         "simulations_loaded": simulations_count,
         "tools": {
-            "gromacs": "2023.3" if tools_status.get('gromacs', {}).get('installed') else "not installed",
-            "rdkit": "2025.9.6" if tools_status.get('rdkit', {}).get('installed') else "not installed",
-            "pyscf": "2.6.2" if tools_status.get('pyscf', {}).get('installed') else "not installed",
-            "scipy": "1.17.1" if tools_status.get('scipy', {}).get('installed') else "not installed",
-            "matplotlib": "3.10.8" if tools_status.get('matplotlib', {}).get('installed') else "not installed",
-            "lammps": "2024.1" if tools_status.get('lammps', {}).get('installed') else "not installed",
-            "avogadro": "1.99" if tools_status.get('avogadro', {}).get('installed') else "not installed",
+            "gromacs": "2023.3 (not installed)" if not tools_status.get('gromacs', {}).get('installed') else "2023.3",
+            "rdkit": tools_status.get('rdkit', {}).get('version', 'not installed') if tools_status.get('rdkit', {}).get('installed') else "not installed",
+            "pyscf": tools_status.get('pyscf', {}).get('version', 'not installed') if tools_status.get('pyscf', {}).get('installed') else "not installed",
+            "scipy": tools_status.get('scipy', {}).get('version', 'not installed') if tools_status.get('scipy', {}).get('installed') else "not installed",
+            "matplotlib": tools_status.get('matplotlib', {}).get('version', 'not installed') if tools_status.get('matplotlib', {}).get('installed') else "not installed",
+            "lammps": "2024.1 (not installed)",
+            "avogadro": "1.99 (not installed)",
+            "biopython": tools_status.get('biopython', {}).get('version', 'not installed') if tools_status.get('biopython', {}).get('installed') else "not installed",
         }
     }
 
