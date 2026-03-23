@@ -1,20 +1,32 @@
 #!/usr/bin/env python3
-"""Ollama AI Integration for Result Analysis"""
+"""Ollama AI Integration for Result Analysis - OPTIONAL"""
 
-import requests
+import os
 import json
 from typing import Dict, Any, Optional
 
+# Ollama is OPTIONAL - only used if user installs it locally
+try:
+    import requests
+    REQUESTS_AVAILABLE = True
+except ImportError:
+    REQUESTS_AVAILABLE = False
+
 class OllamaAnalyzer:
-    """AI-powered simulation result analyzer using Ollama"""
+    """AI-powered simulation result analyzer using Ollama (OPTIONAL)"""
     
-    def __init__(self, base_url='http://localhost:11434'):
-        self.base_url = base_url
+    def __init__(self, base_url=None):
+        # Read from environment variable, never use hardcoded localhost
+        self.base_url = base_url or os.environ.get('OLLAMA_URL', '')
         self.default_model = 'llama3.2'
     
     def is_available(self) -> bool:
         """Check if Ollama is running"""
+        if not REQUESTS_AVAILABLE or not self.base_url:
+            return False
+        
         try:
+            import requests
             response = requests.get(f"{self.base_url}/api/tags", timeout=2)
             return response.status_code == 200
         except Exception:
@@ -22,7 +34,11 @@ class OllamaAnalyzer:
     
     def get_available_models(self) -> list:
         """Get list of available models"""
+        if not REQUESTS_AVAILABLE or not self.base_url:
+            return []
+        
         try:
+            import requests
             response = requests.get(f"{self.base_url}/api/tags", timeout=5)
             if response.status_code == 200:
                 data = response.json()
@@ -34,7 +50,7 @@ class OllamaAnalyzer:
     def analyze_simulation_results(self, tool: str, results: Dict[str, Any], model: Optional[str] = None) -> str:
         """Analyze simulation results and generate human-readable description"""
         
-        if not self.is_available():
+        if not REQUESTS_AVAILABLE or not self.base_url or not self.is_available():
             return self._generate_fallback_analysis(tool, results)
         
         model = model or self.default_model
@@ -43,6 +59,7 @@ class OllamaAnalyzer:
         prompt = self._create_analysis_prompt(tool, results)
         
         try:
+            import requests
             response = requests.post(
                 f"{self.base_url}/api/generate",
                 json={
