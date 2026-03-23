@@ -9,7 +9,9 @@ import statistics
 class RecommendationEngine:
     """Analyzes historical simulations and provides smart recommendations"""
     
-    def __init__(self, simulations_file='/app/backend/simulations_2880.json'):
+    def __init__(self, simulations_file=None):
+        if simulations_file is None:
+            simulations_file = Path(__file__).parent / 'simulations_2880.json'
         self.simulations_file = Path(simulations_file)
         self.simulations = self._load_simulations()
     
