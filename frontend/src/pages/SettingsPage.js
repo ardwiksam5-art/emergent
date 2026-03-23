@@ -1,5 +1,9 @@
-import React, { useState } from 'react';
-import { CheckCircle, AlertCircle, Download } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { CheckCircle, AlertCircle, Download, RefreshCw } from 'lucide-react';
+import axios from 'axios';
+
+const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+const API = `${BACKEND_URL}/api`;
 
 const TOOLS = [
   { id: 'gromacs', name: 'GROMACS', version: '2023.3', status: 'installed' },
@@ -15,23 +19,92 @@ export const SettingsPage = () => {
   const [tools, setTools] = useState(TOOLS);
   const [autoUpdate, setAutoUpdate] = useState(true);
   const [notifications, setNotifications] = useState(true);
+  const [checking, setChecking] = useState(false);
+  const [updates, setUpdates] = useState([]);
 
-  const handleInstall = (toolId) => {
-    console.log('Installing', toolId);
-    alert(`Installing ${toolId}... This may take a few minutes.`);
+  useEffect(() => {
+    fetchToolsStatus();
+    if (autoUpdate) {
+      checkForUpdates();
+    }
+  }, [autoUpdate]);
+
+  const fetchToolsStatus = async () => {
+    try {
+      const response = await axios.get(`${API}/tools/status`);
+      const status = response.data;
+      
+      const updatedTools = TOOLS.map(tool => ({
+        ...tool,
+        status: status[tool.id]?.installed ? 'installed' : 'not_installed',
+      }));
+      
+      setTools(updatedTools);
+    } catch (error) {
+      console.error('Error fetching tools status:', error);
+    }
+  };
+
+  const checkForUpdates = async () => {
+    setChecking(true);
+    try {
+      const response = await axios.get(`${API}/tools/check-updates`);
+      setUpdates(response.data.updates || []);
+      
+      if (response.data.updates && response.data.updates.length > 0 && notifications) {
+        alert(`${response.data.updates.length} update(s) available!`);
+      }
+    } catch (error) {
+      console.error('Error checking updates:', error);
+    }
+    setChecking(false);
+  };
+
+  const handleInstall = async (toolId) => {
+    try {
+      const response = await axios.post(`${API}/tools/install/${toolId}`);
+      alert(response.data.message);
+      fetchToolsStatus();
+    } catch (error) {
+      alert('Installation failed');
+    }
   };
 
   const handleUpdate = (toolId) => {
-    console.log('Updating', toolId);
-    alert(`Updating ${toolId}...`);
+    alert(`Updating ${toolId}... This feature will check PyPI for latest versions.`);
   };
 
   return (
     <div className="space-y-6" data-testid="settings-page">
       {/* General Settings */}
       <div className="border border-border bg-card p-6">
-        <h3 className="font-manrope font-bold text-lg mb-4">General Settings</h3>
-        <div className="space-y-4">
+        <div className="flex items-center justify-between mb-4">
+          <h3 className="font-manrope font-bold text-lg">General Settings</h3>
+          <button
+            onClick={checkForUpdates}
+            disabled={checking}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 disabled:opacity-50 transition-colors flex items-center gap-2"
+            data-testid="check-updates-button"
+          >
+            <RefreshCw size={16} className={checking ? 'animate-spin' : ''} />
+            {checking ? 'Checking...' : 'Check for Updates'}
+          </button>
+        </div>
+        
+        {updates.length > 0 && (
+          <div className="mb-4 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-md">
+            <p className="text-sm font-medium text-amber-800 dark:text-amber-400 mb-2">
+              {updates.length} update(s) available:
+            </p>
+            <ul className="text-xs text-amber-700 dark:text-amber-500 space-y-1">
+              {updates.map((update, idx) => (
+                <li key={idx}>• {update.message}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+        
+        <div className="space-y-4">{/* Rest of settings */}
           <div className="flex items-center justify-between">
             <div>
               <p className="font-medium">Auto-Update Tools</p>
